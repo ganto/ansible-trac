@@ -1,0 +1,16 @@
+# {{ ansible_managed }}
+
+[Unit]
+Description=Trac Instance {{ item.name }}
+Documentation=man:tracd(1)
+After=network.target
+
+[Service]
+type=forking
+Environment="PKG_RESOURCES_CACHE_ZIP_MANIFESTS=1"
+ExecStart=/usr/bin/tracd --daemonize --pidfile=/run/tracd.{{ item.name }}.pid --protocol=http --port {{ item.tracd_port }} --user={{ item.user }} --group={{ item.group }} --single-env {{ trac_project_root }}/{{ item.name }}
+PIDFile=/run/tracd.{{ item.name }}.pid
+Restart=on-failure
+
+[Install]
+WantedBy=multi-user.target

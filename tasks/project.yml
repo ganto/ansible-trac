@@ -1,0 +1,60 @@
+---
+
+- name: Create application groups
+  user:
+    name: '{{ item.group }}'
+    system: yes
+  with_items: trac_project_map
+
+- name: Create application users
+  user:
+    name: '{{ item.user }}'
+    group: '{{ item.group }}'
+    home: '{{ ansible_local.root.home }}/{{ item.user }}'
+    system: yes
+  with_items: trac_project_map
+
+- name: Create project directory
+  file:
+    path: '{{ trac_project_root }}/{{ item.name }}'
+    owner: '{{ item.user }}'
+    group: '{{ item.group }}'
+    mode: '0750'
+    state: directory
+  with_items: trac_project_map
+
+- name: Setup Trac project
+  command: 'trac-admin {{ trac_project_root }}/{{ item.name }} initenv {{ item.name }} sqlite:db/trac.db'
+  args:
+    creates: '{{ trac_project_root }}/{{ item.name }}/conf/trac.ini'
+  become_user: '{{ item.user }}'
+  with_items: trac_project_map
+
+- name: Configure project
+  ini_file:
+    dest: '{{ trac_project_root }}/{{ item.0.name }}/conf/trac.ini'
+    section: '{{ item.1.section }}'
+    option: '{{ item.1.option }}'
+    value: '{{ item.1.value }}'
+  with_subelements:
+    - trac_project_map
+    - config
+
+- name: Create systemd service
+  template:
+    src: 'etc/systemd/system/tracd.service.j2'
+    dest: '/etc/systemd/system/tracd.{{ item.name }}.service'
+    owner: 'root'
+    group: 'root'
+    mode: '0644'
+  when: item.tracd|default(False) and
+        (ansible_local.init == 'systemd')
+  with_items: trac_project_map
+
+- name: Enable systemd service
+  service:
+    name: 'tracd.{{ item.name }}'
+    enabled: 'yes'
+  when: item.tracd|default(False) and
+        (ansible_local.init == 'systemd')
+  with_items: trac_project_map

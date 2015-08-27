@@ -1,0 +1,86 @@
+---
+# Default variables
+# =================
+
+# .. contents:: Sections
+#    :local:
+#
+# -------------------------------
+#   Basic configuration options
+# -------------------------------
+
+# .. envvar:: trac_dependencies
+#
+# Should trac role manage its own dependencies?
+#trac_dependencies: True
+
+
+# .. envvar:: trac_domain
+#
+# Domain which will be used to host the trac instance.
+trac_domain: [ 'trac.{{ ansible_domain }}' ]
+
+
+# .. envvar:: trac_nginx_access_policy
+#
+# Name of the "nginx access policy" for trac webpage. See ``debops.nginx``
+# Ansible role for more details.
+#trac_nginx_access_policy: ''
+
+
+# .. envvar:: trac_vcs
+#
+# List of supported version control systems. Possible values are:
+# ``git``, ``mercurial``, ``bzr`` (Subversion is always supported)
+trac_vcs: [ 'git' ]
+
+
+# .. envvar:: trac_plugins
+#
+# List of supported trac plugins. Run ``apt-cache search ^trac-`` for a
+# complete list of supported plugins.
+trac_plugins: []
+
+
+# .. envvar:: trac_project_map
+#
+# Configuration dict for trac projects to setup.
+trac_project_map: {}
+
+
+# ---------------------------------------
+#   User, group, database configuration
+# ---------------------------------------
+
+# .. envvar:: trac_user
+#
+# trac system user account
+trac_user: 'trac'
+
+
+# .. envvar:: trac_group
+#
+# trac system user group
+trac_group: 'trac'
+
+
+# .. envvar:: trac_home
+#
+# trac home directory
+trac_home: '{{ ansible_local.root.home + "/" + trac_user }}'
+
+
+# .. envvar:: trac_project_root
+#
+# root directory for trac projects
+trac_project_root: '{{ ansible_local.root.srv + "/trac" }}'
+
+
+# -------------------
+#   Other variables
+# -------------------
+
+# .. envvar:: trac_extra_packages
+#
+# List of additional Debian packages that should be installed with trac
+trac_extra_packages: [ 'python-pygments' ]

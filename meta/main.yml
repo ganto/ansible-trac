@@ -1,0 +1,38 @@
+---
+
+dependencies:
+
+#  - role: debops.secret
+#    tags: [ 'depend::secret', 'depend::secret:trac', 'depend-of::trac', 'type::dependency:hard' ]
+
+#  - role: debops.nginx
+#    nginx_servers: [ '{{ trac_nginx_server }}' ]
+#    nginx_upstreams: [ '{{ trac_nginx_upstream_php5 }}' ]
+#    when: trac_dependencies is defined and trac_dependencies
+#    tags: [ 'depend::nginx', 'depend::nginx:trac', 'depend-of::trac', 'type::dependency' ]
+
+#  - role: debops.mariadb
+#    mariadb_users:
+#      - database: '{{ trac_database_map[trac_database].dbname }}'
+#        user: '{{ trac_database_map[trac_database].dbuser }}'
+#        owner: '{{ trac_user }}'
+#        group: '{{ trac_group }}'
+#        home: '{{ trac_home }}'
+#        system: True
+#        priv_aux: False
+#    mariadb_server: '{{ trac_database_map[trac_database].dbhost }}'
+#    when: trac_dependencies is defined and trac_database_map[trac_database].dbtype == 'mysql'
+#    tags: [ 'depend::mariadb', 'depend::mariadb:trac', 'depend-of::trac', 'type::dependency' ]
+
+galaxy_info:
+  author: 'Reto Gantenbein'
+  description: 'Install Trac, an enhanced wiki and issue tracking system'
+  license: 'GNU General Public License v3'
+  min_ansible_version: '1.8.0'
+  platforms:
+  - name: Debian
+    versions:
+    - wheezy
+    - jessie
+  categories:
+  - web

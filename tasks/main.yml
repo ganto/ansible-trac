@@ -1,0 +1,22 @@
+---
+
+- name: Install Trac base packages
+  apt:
+    pkg: '{{ item }}'
+    state: 'present'
+    install_recommends: False
+  with_flattened:
+    - [ 'trac' ]
+    - trac_extra_packages
+
+- name: Install Trac add-on packages
+  apt:
+    pkg: 'trac-{{ item }}'
+    state: 'present'
+    install_recommends: False
+  with_flattened:
+    - '{{ trac_vcs if ansible_distribution_release == "wheezy" else (trac_vcs | difference([ "git" ])) }}'
+    - trac_plugins
+
+- include: project.yml
+  when: trac_project_map is defined and trac_project_map
