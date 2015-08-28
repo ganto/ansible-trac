@@ -50,6 +50,7 @@
   when: item.tracd|default(False) and
         (ansible_local.init == 'systemd')
   with_items: trac_project_map
+  notify: [ Reload systemd ]
 
 - name: Enable systemd service
   service:
