@@ -21,13 +21,6 @@
 trac_domain: [ 'trac.{{ ansible_domain }}' ]
 
 
-# .. envvar:: trac_nginx_access_policy
-#
-# Name of the "nginx access policy" for trac webpage. See ``debops.nginx``
-# Ansible role for more details.
-#trac_nginx_access_policy: ''
-
-
 # .. envvar:: trac_accept
 #
 # List of IP addresses or CIDR subnets which will be allowed to connect to the
@@ -59,22 +52,22 @@ trac_project_map: {}
 #   User, group, database configuration
 # ---------------------------------------
 
-# .. envvar:: trac_user
+# .. envvar:: trac_default_user
 #
-# trac system user account
-trac_user: 'trac'
+# trac default system user account
+trac_default_user: 'trac'
 
 
-# .. envvar:: trac_group
+# .. envvar:: trac_default_group
 #
-# trac system user group
-trac_group: 'trac'
+# trac default system user group
+trac_default_group: 'trac'
 
 
 # .. envvar:: trac_home
 #
 # trac home directory
-trac_home: '{{ ansible_local.root.home + "/" + trac_user }}'
+trac_home: '{{ ansible_local.root.home + "/" + trac_default_user }}'
 
 
 # .. envvar:: trac_project_root

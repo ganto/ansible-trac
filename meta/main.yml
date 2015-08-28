@@ -26,8 +26,8 @@ dependencies:
 #    mariadb_users:
 #      - database: '{{ trac_database_map[trac_database].dbname }}'
 #        user: '{{ trac_database_map[trac_database].dbuser }}'
-#        owner: '{{ trac_user }}'
-#        group: '{{ trac_group }}'
+#        owner: '{{ trac_default_user }}'
+#        group: '{{ trac_default_group }}'
 #        home: '{{ trac_home }}'
 #        system: True
 #        priv_aux: False

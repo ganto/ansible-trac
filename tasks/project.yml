@@ -2,23 +2,23 @@
 
 - name: Create application groups
   user:
-    name: '{{ item.group|default(trac_group) }}'
+    name: '{{ item.group|default(trac_default_group) }}'
     system: yes
   with_items: trac_project_map
 
 - name: Create application users
   user:
-    name: '{{ item.user|default(trac_user) }}'
-    group: '{{ item.group|default(trac_group) }}'
-    home: '{{ ansible_local.root.home }}/{{ item.user|default(trac_user) }}'
+    name: '{{ item.user|default(trac_default_user) }}'
+    group: '{{ item.group|default(trac_default_group) }}'
+    home: '{{ ansible_local.root.home }}/{{ item.user|default(trac_default_user) }}'
     system: yes
   with_items: trac_project_map
 
 - name: Create project directory
   file:
     path: '{{ trac_project_root }}/{{ item.name }}'
-    owner: '{{ item.user|default(trac_user) }}'
-    group: '{{ item.group|default(trac_user) }}'
+    owner: '{{ item.user|default(trac_default_user) }}'
+    group: '{{ item.group|default(trac_default_user) }}'
     mode: '0750'
     state: directory
   with_items: trac_project_map
@@ -27,7 +27,7 @@
   command: 'trac-admin {{ trac_project_root }}/{{ item.name }} initenv {{ item.name }} sqlite:db/trac.db'
   args:
     creates: '{{ trac_project_root }}/{{ item.name }}/conf/trac.ini'
-  become_user: '{{ item.user|default(trac_user) }}'
+  become_user: '{{ item.user|default(trac_default_user) }}'
   with_items: trac_project_map
 
 - name: Configure project
