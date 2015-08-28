@@ -2,6 +2,17 @@
 
 dependencies:
 
+  - role: debops.ferm
+    ferm_input_list:
+      - type: 'dport_accept'
+        name: 'trac'
+        dport: '{{ trac_project_map | map(attribute="tracd_port") | list }}'
+        saddr: '{{ trac_accept }}'
+        accept_any: True
+        filename: 'trac_dependency_accept'
+        weight: '20'
+    when: trac_project_map is defined and trac_project_map
+
 #  - role: debops.secret
 #    tags: [ 'depend::secret', 'depend::secret:trac', 'depend-of::trac', 'type::dependency:hard' ]
 

@@ -28,6 +28,13 @@ trac_domain: [ 'trac.{{ ansible_domain }}' ]
 #trac_nginx_access_policy: ''
 
 
+# .. envvar:: trac_accept
+#
+# List of IP addresses or CIDR subnets which will be allowed to connect to the
+# server in ``ip(6)tables``. If it's empty, all remote connections are allowed.
+trac_accept: []
+
+
 # .. envvar:: trac_vcs
 #
 # List of supported version control systems. Possible values are:

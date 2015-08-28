@@ -12,4 +12,4 @@ to your `DebOps`_ project roles directory::
 Role dependencies
 ~~~~~~~~~~~~~~~~
 
-None
+* ``debops.ferm``

@@ -13,7 +13,7 @@ to your [DebOps](http://debops.org) project roles directory:
 
 ### Role dependencies
 
-None
+* ``debops.ferm``
 
 ### Are you using this as a standalone role without DebOps?
 
