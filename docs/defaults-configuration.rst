@@ -31,6 +31,9 @@ Each project is defined as a YAML dict with the following keys:
   Optional. Boolean indicating if the integrated standalone HTTP server
   should be used. 
 
+``tracd_address``
+  Optional. Listen address for the ``tracd`` service.
+
 ``tracd_port``
   Optional. Port used with the ``tracd``. Must be a number >1024.
 

@@ -17,8 +17,9 @@
 
 # .. envvar:: trac_domain
 #
-# Domain which will be used to host the trac instance.
-trac_domain: [ 'trac.{{ ansible_domain }}' ]
+# Domain which will be used to host the trac instance if not overwritten in
+# the project configuration.
+trac_domain: 'trac.{{ ansible_domain }}'
 
 
 # .. envvar:: trac_accept
