@@ -32,38 +32,61 @@ options:
      description:
         - Absolut file system path to the Trac project directory.
      required: true
-   db_type:
+   dbtype:
      description:
         - Type of database backend.
      choices: [ 'sqlite', 'mysql', 'postgresql' ]
      default: sqlite
-   db_host:
+   dbhost:
      description:
-        - Host name of database. Only used with db_type 'mysql' or 'postgresql'.
+        - Host name of database. Only used with dbtype 'mysql' or 'postgresql'.
      default: localhost
-   db_user:
+   dbuser:
      description:
-        - Database user name. Only used with db_type 'mysql' or 'postgresql'.
+        - Database user name. Only used with dbtype 'mysql' or 'postgresql'.
           If unspecified the project name will be used as user name.
+     default: Value of the project name
+   dbpass:
+     description:
+        - Database user password. Only used with dbtype 'mysql' or 'postgresql'.
+          In this case the option is required.
+     default: null
+   dbname:
+     description:
+        - Database name. Only used with dbtype 'mysql' or 'postgresql'.
+          If unspecified the project name will be used as database name.
      default: Value of the project name
    config:
      description:
         - List of trac.ini configuration parameters.
           Syntax: { 'section': INI-section, 'option': option, 'value': value }
      default: []
-requirements: [ 'trac', 'MySQL-python', 'python-psycopg2' ]
+requirements: [ 'trac' ]
 notes:
-  - The 'MySQL-python' package is only used if 'mysql' is used as db_type.
-  - The 'python-psycopg2' package is only used if 'postgresql' is used as db_type.
+  - If 'mysql' is used as dbtype, the MySQLdb Python package is required on the
+    the remote host. For Debian, this is as easy as apt-get install python-mysqldb.
+  - If 'postgresql' is used as dbtype, the psycopg2 Python package, a PostgreSQL
+    database adapter is required on the remote host. For Debian, this can be
+    installed with apt-get install python-psycopg2.
 """
 
 EXAMPLES = """
 # Create new Trac project with name 'myproject'
 - trac_project: name='myproject' path='/srv/trac/myproject'
+
+# Create new Trac project with remote PostgreSQL database backend. The database
+# and user have to be created separately (e.g. with the Ansible 'postgressql_db'
+# module) before running this task.
+- trac_project: name='myproject' path='/srv/trac/myproject'
+                dbtype='postgresql'
+                dbuser='myprojectadm'
+                dbpass='p4s5w0rD'
+                dbhost='pghost.example.com'
 """
 
 import ConfigParser
 try:
+    from trac.config import Configuration
     from trac.core import TracError
     from trac.env import Environment
 except ImportError:
@@ -88,8 +111,8 @@ class TracProjectManager(object):
         """
         self.module = module
         self.state_change = False
-        self.project_name = self.module.params['name']
         self.project_path = self.module.params['path']
+        self.trac_ini = os.path.join(self.project_path, 'conf', 'trac.ini')
 
     @staticmethod
     def _project_exists(path):
@@ -106,17 +129,6 @@ class TracProjectManager(object):
             return False
         return True
 
-    def _project_data(self):
-        """Returns a dict of project information.
-
-        :returns: project data
-        :rtype: ``dict``
-        """
-        return {
-            'name': self.project_name,
-            'path': self.project_path
-        }
-
     def _get_update_config(self):
         """Returns a list of dict with the project config parameters to apply.
 
@@ -129,16 +141,11 @@ class TracProjectManager(object):
         if project_config:
             if self._project_exists(self.project_path):
                 old_config = ConfigParser.RawConfigParser()
-                trac_ini = os.path.join(self.module.params['path'], 'conf', 'trac.ini')
 
-                if not os.path.exists(trac_ini):
-                    self.failure(
-                        error='trac.ini: No such file',
-                        rc=1,
-                        msg='Project configuration not found [ %s ]' % trac_ini
-                    )
-                old_config.readfp(open(trac_ini))
+                if not os.path.exists(self.trac_ini):
+                    self.module.fail_json(msg="Project configuration not found [ %s ]" % self.trac_ini)
 
+                old_config.readfp(open(self.trac_ini))
                 for option in project_config:
                     if option['value'] != old_config.get(option['section'], option['option']):
                         update_config.append(option)
@@ -154,13 +161,13 @@ class TracProjectManager(object):
         """
 
         project_options = []
-        if not self.module.params['db_type'] == 'sqlite':
+        if not self.module.params['dbtype'] == 'sqlite':
             db_url = "%s://%s:%s@%s/%s" % (
-                self.module.params['db_type'],
-                self.module.params['db_user'],
-                'p4s5w0rD',
-                self.module.params['db_host'],
-                self.project_name
+                self.module.params['dbtype'],
+                self.module.params['dbuser'],
+                self.module.params['dbpass'],
+                self.module.params['dbhost'],
+                self.module.params['dbname'],
             )
         else:
             db_url = 'sqlite:db/trac.db'
@@ -176,30 +183,23 @@ class TracProjectManager(object):
             project_env.shutdown()    
             self.state_change = True
         else:
-            project_env = Environment(self.project_path, create=False, options=project_options)
-            project_env.shutdown()    
-
-    def failure(self, **kwargs):
-        """Return a Failure when running an Ansible command.
-
-        :param error: ``str``  Error that occurred.
-        :param rc: ``int``     Return code while executing an Ansible command.
-        :param msg: ``str``    Message to report.
-        """
-
-        self.module.fail_json(**kwargs)
+            project_conf = Configuration(self.trac_ini)
+            for entry in project_options:
+                project_conf.set(*entry)
+            project_conf.save()
 
     def run(self):
         """Run the main method."""
-
         self._project_setup()
-        outcome = self._project_data()
 
         self.module.exit_json(
-            changed=self.state_change,
-            trac_project=outcome
+            project=self.module.params['name'],
+            changed=self.state_change
         )
 
+# ===========================================
+# Module execution.
+#
 
 def main():
     """Ansible Main module."""
@@ -214,30 +214,48 @@ def main():
                 type='str',
                 required=True
             ),
-            db_type=dict(
+            dbtype=dict(
                 choices=TRAC_ANSIBLE_DB_TYPES,
                 default='sqlite',
                 required=False
             ),
-            db_host=dict(
+            dbhost=dict(
                 type='str',
                 default='localhost',
                 required=False
             ),
-            db_user=dict(
+            dbuser=dict(
                 type='str',
+                default=None,
+                required=False
+            ),
+            dbpass=dict(
+                type='str',
+                default=None,
+                required=False
+            ),
+            dbname=dict(
+                type='str',
+                default=None,
                 required=False
             ),
             config=dict(
                 type='list',
-                default=None,
+                default=[],
                 required=False
             )
         )
     )
 
-    trac_manager = TracProjectManager(module=module)
-    trac_manager.run()
+    if module.params['dbtype'] != 'sqlite':
+        if not module.params['dbuser']:
+            module.params['dbuser'] = module.params['name']
+        if not module.params['dbname']:
+            module.params['dbname'] = module.params['name']
+        if not module.params['dbpass']:
+            module.fail_json(msg="missing required arguments: dbpass")
+
+    TracProjectManager(module=module).run()
 
 # import module bits
 from ansible.module_utils.basic import *
