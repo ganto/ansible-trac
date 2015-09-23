@@ -11,6 +11,12 @@ to your [DebOps](http://debops.org) project roles directory:
 
     git clone http://github.com/ganto/ansible-trac.git
 
+The role also brings its own Ansible module, called `trac_project` which
+must be included in the Ansible module path by adding the included *modules/*
+directory to the `ANSIBLE_LIBRARY` environment variable. E.g.:
+
+    ANSIBLE_LIBRARY=/var/lib/debops/myproject/ansible/roles/asible-trac/modules
+
 ### Role dependencies
 
 * ``debops.ferm``
